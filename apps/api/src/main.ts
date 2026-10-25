@@ -6,7 +6,7 @@ import { Logger } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app/app.module.js';
 import { AuthService } from './auth/auth.service.js';
-import { loadEnv } from './config/env.js';
+import { loadEnv, originList } from './config/env.js';
 
 async function bootstrap(): Promise<void> {
   const env = loadEnv();
@@ -18,9 +18,12 @@ async function bootstrap(): Promise<void> {
   app.useBodyParser('json', { limit: '2mb' });
 
   app.enableCors({
-    origin: env.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean),
+    origin: originList(env),
     credentials: true,
-    exposedHeaders: ['etag', 'x-request-id'],
+    // QUERY adalah method baru (RFC 10008) dan tidak termasuk daftar bawaan; tanpanya
+    // preflight browser atas permintaan QUERY berbody JSON akan ditolak.
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'QUERY'],
+    exposedHeaders: ['etag', 'x-request-id', 'allow', 'cache-control'],
   });
 
   // better-auth memiliki route-nya sendiri (sign-in/up, session, revoke, callback)

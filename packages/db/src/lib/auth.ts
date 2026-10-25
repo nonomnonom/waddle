@@ -8,6 +8,13 @@ import type { Db } from './client.js';
 export interface AuthConfig {
   baseURL: string;
   secret: string;
+  /**
+   * Origin yang boleh memanggil endpoint auth. better-auth memeriksa header
+   * `Origin` dan menjawab 403 untuk origin yang tidak terdaftar — tanpa ini,
+   * sign-in dari web (localhost:4173) ke API (localhost:3000) selalu ditolak
+   * walaupun CORS di level aplikasi sudah mengizinkan.
+   */
+  trustedOrigins?: string[];
   /** produksi: log lebih senyap */
   production?: boolean;
   /** jam; default 30 hari */
@@ -28,6 +35,7 @@ export function createAuth(db: Db, config: AuthConfig) {
     appName: config.appName ?? 'waddle',
     baseURL: config.baseURL,
     secret: config.secret,
+    trustedOrigins: config.trustedOrigins ?? [],
     database: drizzleAdapter(db, { provider: 'pg', schema: authSchema }),
     emailAndPassword: { enabled: true, minPasswordLength: 10, autoSignIn: true },
     session: {

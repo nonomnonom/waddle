@@ -1,4 +1,4 @@
-import { Dictionary, InputEngine, UserDict, loadEntries, segment, fuzzyVariants, SYLLABLES } from '../index.js';
+import { Dictionary, InputEngine, UserDict, loadEntries, segment, fuzzyVariants, SYLLABLES } from './index.js';
 
 const engine = (opts = {}) => new InputEngine(new Dictionary(), new UserDict(), opts);
 

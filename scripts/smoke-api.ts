@@ -47,6 +47,17 @@ if (!token) {
   process.exit(1);
 }
 
+// 2b. better-auth menolak origin yang tidak dikenalnya dengan 403 (pemeriksaannya
+// bekerja di atas header Origin, bukan di atas CORS). Origin web harus masuk
+// `trustedOrigins`, kalau tidak sign-in dari browser gagal padahal curl lulus.
+const webOrigin = process.env.SMOKE_WEB_ORIGIN ?? 'http://localhost:4200';
+const signInStatus = await fetch(`${BASE}/api/auth/sign-in/email`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json', origin: webOrigin },
+  body: JSON.stringify({ email, password }),
+}).then((r) => r.status);
+check(`sign-in dengan Origin ${webOrigin} tidak ditolak (trustedOrigins tersambung)`, signInStatus < 403, { status: signInStatus });
+
 // 3. profil
 const profile = await call<{ plan: string; collected: number }>('/v1/profile', {}, token);
 check('GET /v1/profile terbaca dengan bearer token', profile.code === 'ok', profile.code !== 'ok' ? profile : profile.data);

@@ -23,6 +23,17 @@ const EnvSchema = z.object({
 
 export type Env = z.infer<typeof EnvSchema>;
 
+/**
+ * Origin web yang diizinkan, dipakai dua tempat yang harus selalu sama:
+ * CORS di main.ts dan `trustedOrigins` better-auth (penolakan 403 atas origin
+ * yang tidak dikenal). Kalau keduanya berbeda, gejala yang muncul membingungkan:
+ * preflight lolos, tapi sign-in ditolak.
+ */
+export const originList = (env: Env): string[] =>
+  env.CORS_ORIGINS.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
 export function loadEnv(overrides: Record<string, string | undefined> = {}): Env {
   const merged = { ...process.env, ...overrides };
   const parsed = EnvSchema.safeParse(merged);

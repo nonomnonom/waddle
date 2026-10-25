@@ -31,7 +31,7 @@ Header permintaan wajib dari klien:
 | `X-InputMethod-Version` | `1.0.0 (54)`  | IME; Keysake membedakan versi app vs IME **[KEYSAKE]**               |
 | `X-Engine-Version`      | `2026-08-22`  | versi resource rime (config_version di `default.yaml` **[KEYSAKE]**) |
 | `X-Device-Digest`       | UUID keychain | untuk binding token & agregat harian                                 |
-| `X-Locale`              | `zh-Hans`     |                                                                      |
+| `X-Locale`              | `id`          | **[KEYSAKE]** build aslinya mengirim `zh-Hans`; klien kita mengirim `id`  |
 | `X-Request-Id`          | UUID          | di-echo ke log & respons                                             |
 
 ## 2. Amplop respons (satu bentuk untuk semua endpoint)
@@ -86,11 +86,21 @@ Keysake melanggarnya di jalur AI (config `rime_ai.local.json` di `~/Library/Rime
 ```
 POST   /v1/contents/batch       SaveContentRequest[]   # upload antrian lokal; respons per-item status
 GET    /v1/contents?from=2026-10-01&to=2026-10-25&cursor=&limit=100
+QUERY  /v1/contents             { from?, to?, cursor?, search?, limit? }
 GET    /v1/contents/{id}
 PATCH  /v1/contents/{id}        { translation?: {...}, status?: 'archived' }
 DELETE /v1/contents/{id}
 POST   /v1/contents/statistics  ContentDailyCount[]     # agregat harian, bukan per-keystroke
 ```
+
+**[BLUEPRINT]** `QUERY` adalah metode HTTP dari RFC 10008: aman dan idempoten seperti `GET`,
+tapi isi kuerinya duduk di body. Kita memakainya untuk pencarian frasa — teks panjang tidak
+menabrak batas panjang URL dan tidak ikut tertulis di log proxy (RFC 10008 §4). Kedua jalur
+memanggil service yang sama dan tervalidasi skema yang sama, jadi hasilnya tidak mungkin
+berbeda. Response `QUERY` berbendera `Allow: GET, HEAD, QUERY, OPTIONS` dan
+`Cache-Control: private, no-store` — §2.7 meminta kunci cache ikut berisi isi kueri, dan cache
+HTTP umum belum bisa melakukan itu. Catatan: OpenAPI 3.1 tidak punya kunci operasi untuk
+`QUERY`, jadi rute ini didokumentasikan di sini, bukan di `openapi.yaml`.
 
 `POST /v1/contents/batch` body (maks 200 item / 256 KB terkompresi):
 
@@ -100,7 +110,7 @@ POST   /v1/contents/statistics  ContentDailyCount[]     # agregat harian, bukan 
     {
       "clientId": "uuid",
       "sourceText": "…",
-      "sourceLang": "zh-Hans",
+      "sourceLang": "id",
       "translation": {
         "targetLang": "en",
         "provider": "apple-on-device",

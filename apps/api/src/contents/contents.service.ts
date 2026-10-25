@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from '@waddle/db';
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, sql } from '@waddle/db';
 import { contentTranslations, contents, contentDailyCounts, installations, type Db } from '@waddle/db';
 import {
   BusinessError,
@@ -14,12 +14,12 @@ import { BilingualAssist } from '@waddle/engine';
 import { DB } from '../db/database.module.js';
 
 /**
- * Koleksi fragmen (padanan 收录 di Keysake, tapi untuk id→en).
+ * Koleksi fragmen: potongan teks yang user simpan (setara fitur koleksi di Keysake, jalur id→en).
  *
  * Dua hal yang diambil dari desain Keysake karena terbukti perlu:
  *  1) antrian klien + hasil per-item (partial success), bukan transaksi semua-or-bukti;
  *  2) terjemahan disimpan sebagai baris terpisah, karena sering ada belakangan
- *     ("中文已收藏，译文待补充" versi kita: "sudah tersimpan, terjemahan menyusul").
+ *     — fragmen bisa tersimpan dulu sementara terjemahannya menyusul.
  */
 @Injectable()
 export class ContentsService {
@@ -108,6 +108,12 @@ export class ContentsService {
     if (q.from) conds.push(gte(localDay, q.from));
     if (q.to) conds.push(lte(localDay, q.to));
     if (q.cursor) conds.push(lte(contents.collectedAt, new Date(Number(q.cursor))));
+    if (q.search) {
+      // pola LIKE: % dan _ adalah wildcard, backslash adalah escape default Postgres.
+      // Tanpa pelarian, user yang mengetik "100%" akan mencari hal lain dari yang ia tulis.
+      const pattern = `%${q.search.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
+      conds.push(ilike(contents.sourceText, pattern));
+    }
 
     const rows = await this.db
       .select({

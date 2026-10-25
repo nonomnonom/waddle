@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api, ApiError } from '../lib/api.js';
+import { api, apiQuery, ApiError } from '../lib/api.js';
 
 interface Fragment {
   id: string;
@@ -39,23 +39,32 @@ export function CollectionView({ signedIn, notify }: { signedIn: boolean; notify
   const [loading, setLoading] = useState(false);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const [removed, setRemoved] = useState<Set<string>>(new Set());
+
+  // pencarian dikirim 250 ms setelah ketikan terakhir: tiap karakter tidak perlu
+  // mengirim satu permintaan QUERY ke server
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 250);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const load = useCallback(async () => {
     if (!signedIn) return;
     setLoading(true);
     try {
-      const q = new URLSearchParams();
-      if (from) q.set('from', from);
-      if (to) q.set('to', to);
-      q.set('limit', '100');
-      setPage(await api<Page>(`/v1/contents?${q.toString()}`));
+      const content: Record<string, unknown> = { limit: 100 };
+      if (from) content.from = from;
+      if (to) content.to = to;
+      if (search) content.search = search;
+      setPage(await apiQuery<Page>('/v1/contents', content));
     } catch (err) {
       notify(err instanceof ApiError ? err.message : 'Gagal memuat koleksi.');
     } finally {
       setLoading(false);
     }
-  }, [signedIn, from, to, notify]);
+  }, [signedIn, from, to, search, notify]);
 
   useEffect(() => {
     void load();
@@ -89,6 +98,16 @@ export function CollectionView({ signedIn, notify }: { signedIn: boolean; notify
     <div className="collection">
       <header className="filters">
         <label>
+          Cari
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="mis. rapat diundur"
+            aria-label="Cari teks tersimpan"
+          />
+        </label>
+        <label>
           Dari
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         </label>
@@ -104,7 +123,11 @@ export function CollectionView({ signedIn, notify }: { signedIn: boolean; notify
 
       {loading && <p className="loading">Memuat…</p>}
       {!loading && groups.length === 0 && (
-        <p className="empty">Belum ada yang disimpan. Koleksi muncul per tanggal sesuai waktu kamu mengetik.</p>
+        <p className="empty">
+          {search
+            ? `Tidak ada yang cocok dengan "${search}".`
+            : 'Belum ada yang disimpan. Koleksi muncul per tanggal sesuai waktu kamu mengetik.'}
+        </p>
       )}
 
       {groups.map(([day, items]) => (

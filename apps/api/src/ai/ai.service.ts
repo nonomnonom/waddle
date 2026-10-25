@@ -57,7 +57,7 @@ interface PromptRow {
  *   4) lane remote (LLM)  5) degradasi eksplisit, bukan exception tak terkendali.
  *
  * Terjemahan id→en sebagian besar selesai di langkah 2 — itu keputusan produk:
- * biaya dan latensi tidak boleh tumbuh线性 mengikuti volume ketikan user.
+ * biaya dan latensi tidak boleh tumbuh linear mengikuti volume ketikan user.
  */
 @Injectable()
 export class AiService {

@@ -3,6 +3,7 @@ import type { Db } from '@waddle/db';
 import { createAuth, toAuthHandler, type Auth } from '@waddle/db/auth';
 import { DB } from '../db/database.module.js';
 import { ENV } from '../config/env.module.js';
+import { originList } from '../config/env.js';
 import type { Env } from '../config/env.js';
 
 export interface AuthSession {
@@ -28,6 +29,7 @@ export class AuthService {
     this.auth = createAuth(db, {
       baseURL: env.BETTER_AUTH_URL,
       secret: env.BETTER_AUTH_SECRET,
+      trustedOrigins: originList(env),
       production: env.NODE_ENV === 'production',
     });
     this.nodeHandler = toAuthHandler(this.auth);

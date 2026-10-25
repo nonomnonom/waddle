@@ -51,7 +51,7 @@ export const installations = pgTable(
   (t) => [uniqueIndex().on(t.deviceDigest, t.platform)],
 );
 
-/** Fragmen yang dikumpulkan user (收录). */
+/** Fragmen yang dikumpulkan user. */
 export const contents = pgTable(
   'contents',
   {
@@ -85,7 +85,8 @@ export const contents = pgTable(
 
 /**
  * Terjemahan adalah entitas terpisah (bukan kolom) — negara bagian UI
- * "中文已收藏，译文待补充" hanya bisa muncul kalau provider/teks boleh kosong dulu.
+ * "teks sudah tersimpan, terjemahan menyusul" hanya bisa muncul kalau
+ * provider/teks boleh kosong dulu.
  */
 export const contentTranslations = pgTable(
   'content_translations',
@@ -283,10 +284,12 @@ export const settingsReleases = pgTable(
         revokedAt: tsNull('revoked_at'),
         createdAt: ts("created_at"),
   },
-  (t) => [uniqueIndex().on(t.channel, t.version)],
+  // nama indeks dikunci sama seperti yang sudah ada di migration 0000, supaya
+  // perubahan aturan penamaan drizzle-kit tidak pernah menghasilkan diff "rename index"
+  (t) => [uniqueIndex('settings_releases_channel_version_index').on(t.channel, t.version)],
 );
 
-/** Update app dan update helper/engine terpisah (Keysake: "有新版本输入法"). */
+/** Update app dan update helper/engine dipisah: Keysake mengumumkan versi baru IME terpisah dari app. */
 export const appReleases = pgTable(
   'app_releases',
   {

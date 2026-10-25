@@ -73,7 +73,7 @@ components:
       properties:
         id: { type: string, format: uuid }
         sourceText: { type: string }
-        sourceLang: { type: string, examples: [zh-Hans] }
+        sourceLang: { type: string, examples: [id] }
         charCount: { type: integer }
         collectedAt: { type: integer, format: int64 }
         tzOffsetMinutes: { type: integer }
@@ -83,7 +83,7 @@ components:
           type: [object, 'null']
           properties:
             targetLang: { type: string }
-            provider: { type: string, enum: [apple-on-device, llm, none] }
+            provider: { type: string, enum: [local-dictionary, remote-llm, on-device, none] }
             text: { type: string }
     FragmentInput:
       type: object
@@ -91,7 +91,7 @@ components:
       properties:
         clientId: { type: string, format: uuid }
         sourceText: { type: string, maxLength: 20000 }
-        sourceLang: { type: string, default: zh-Hans }
+        sourceLang: { type: string, default: id }
         translation:
           type: object
           properties:
@@ -143,13 +143,15 @@ components:
             examples:
               [
                 translate_to_english,
-                translate_to_chinese,
                 paraphrase,
                 find_supporting_references,
+                explain_correction,
               ],
           }
-        displayZh: { type: string }
-        displayEn: { type: string }
+        displayLabel:
+          type: object
+          additionalProperties: { type: string }
+          description: 'label per locale,contoh {"id": "Terjemahkan ke Inggris", "en": "Translate to English"}'
         lane: { type: string, enum: [local, remote] }
         maxInputChars: { type: integer }
         timeoutMs: { type: integer }

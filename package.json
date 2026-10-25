@@ -10,6 +10,7 @@
     "db:seed": "nx run @waddle/db:seed",
     "db:generate": "nx run @waddle/db:generate",
     "smoke": "bun scripts/smoke-api.ts",
+    "check:query": "bun scripts/check-http-query.ts",
     "verify": "nx run-many -t typecheck && nx run-many -t test && nx run-many -t build"
   },
   "private": true,

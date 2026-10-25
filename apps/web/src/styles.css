@@ -400,6 +400,11 @@ button {
   background: var(--surface);
 }
 
+/* kolom cari butuh ruang lebih daripada tanggal */
+.filters input[type='search'] {
+  min-width: 220px;
+}
+
 .count {
   margin-left: auto;
   font-size: 12px;

@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { FragmentBatchRequestSchema, FragmentListQuerySchema, StatisticsBatchSchema } from '@waddle/protocol';
+import { FragmentBatchRequestSchema, FragmentListQuerySchema, StatisticsBatchSchema, type FragmentListQuery } from '@waddle/protocol';
 import { ContentsService } from './contents.service.js';
 import { SessionGuard } from '../auth/session.guard.js';
 import { CurrentUser } from '../auth/decorators.js';
 import { ZodPipe } from '../common/zod.pipe.js';
+import { RfcQuery, RfcQueryContent, READ_ALLOW } from '../common/http-query.js';
 import type { AuthSession } from '../auth/auth.service.js';
 
 /**
@@ -27,8 +28,19 @@ export class ContentsController {
   }
 
   @Get()
+  @Header('Allow', READ_ALLOW)
   list(@CurrentUser() auth: AuthSession, @Query(new ZodPipe(FragmentListQuerySchema)) query: unknown) {
     return this.contents.list(auth.user.id, query);
+  }
+
+  /**
+   * Kueri yang sama, diangkat ke body (RFC 10008). Dipakai web saat user mencari
+   * frasa panjang; klien lama tetap boleh memakai GET di atas — keduanya memanggil
+   * `ContentsService.list` yang sama, jadi hasilnya tidak mungkin berbeda.
+   */
+  @RfcQuery()
+  listByQuery(@CurrentUser() auth: AuthSession, @RfcQueryContent(FragmentListQuerySchema) content: FragmentListQuery) {
+    return this.contents.list(auth.user.id, content);
   }
 
   @Post('statistics')

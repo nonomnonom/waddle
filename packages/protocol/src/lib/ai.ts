@@ -4,10 +4,13 @@ import { z } from 'zod';
  * Registry tugas generatif. Kode dan label TIDAK di-hardcode di klien:
  * klien membaca registry dari server (`/v1/ai/tasks`), sehingga menambah tugas
  * tidak memerlukan rilis ulang desktop/mobile.
+ *
+ * v1 hanya Indonesia→Inggris. Tugas Mandarin (`translate_to_chinese`) sengaja tidak
+ * ada di daftar: enum ini ikut memvalidasi rute, jadi klien lama pun tidak bisa
+ * memicunya. Barisnya di DB dinonaktifkan, bukan dihapus.
  */
 export const AiTaskCodeSchema = z.enum([
   'translate_to_english',
-  'translate_to_chinese',
   'paraphrase',
   'find_supporting_references',
   'explain_correction',

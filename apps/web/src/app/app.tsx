@@ -50,7 +50,9 @@ export function App() {
 
   useEffect(() => {
     void syncSession();
-    api<{ serverTime: number }>('/v1/ping')
+    // healthz publik: `/v1/ping` memerlukan sesi, jadi memakai itu sebagai
+    // pemeriksaan keterjangkauan akan selalu bilang "API mati" untuk user yang belum masuk
+    api<{ ok: boolean }>('/healthz')
       .then(() => setServer('up'))
       .catch(() => setServer('down'));
   }, [syncSession]);

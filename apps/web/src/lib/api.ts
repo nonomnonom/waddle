@@ -53,8 +53,15 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return envelope.data as T;
 }
 
-/** Identitas perangkat ringan untuk agregat harian; stabil per browser+profil. */
-function deviceDigest(): string {
+/**
+ * Baca dengan metode HTTP QUERY (RFC 10008): isi kueri duduk di body JSON, bukan di URL.
+ * Aman dan idempoten seperti GET — bedanya frasa pencarian panjang tidak menabrak batas
+ * panjang URL dan tidak ikut tertulis di log proxy perantara.
+ */
+export const apiQuery = <T>(path: string, content: Record<string, unknown>): Promise<T> =>
+  api<T>(path, { method: 'QUERY', body: JSON.stringify(content) });
+
+/** Identitas perangkat ringan untuk agregat harian; stabil per browser+profil. */function deviceDigest(): string {
   const KEY = 'waddle.device.digest';
   const existing = localStorage.getItem(KEY);
   if (existing) return existing;

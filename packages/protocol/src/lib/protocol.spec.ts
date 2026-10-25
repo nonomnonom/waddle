@@ -5,6 +5,7 @@ import {
   ok,
   FragmentInputSchema,
   FragmentBatchRequestSchema,
+  FragmentListQuerySchema,
   TapRequestSchema,
   TAP_VERSION,
   parseNdjsonLine,
@@ -44,8 +45,8 @@ describe('Envelope', () => {
 describe('Fragmen', () => {
   const input = {
     clientId: '01971234-5678-7000-8000-000000000001',
-    sourceText: '今天的项目评审改到下午三点。',
-    sourceLang: 'zh-Hans',
+    sourceText: 'hari ini rapatnya diundur ke jam tiga sore.',
+    sourceLang: 'id',
     collectedAt: 1793000000000,
     tzOffsetMinutes: 420,
     originAppBundle: 'com.apple.Notes',
@@ -53,7 +54,7 @@ describe('Fragmen', () => {
 
   it('memberi nilai default sourceLang dan menerima terjemahan', () => {
     const parsed = FragmentInputSchema.parse(input);
-    expect(parsed.sourceLang).toBe('zh-Hans');
+    expect(parsed.sourceLang).toBe('id');
     const withTr = FragmentInputSchema.parse({
       ...input,
       translation: { targetLang: 'en', provider: 'local-dictionary', text: 'The review moved to 3pm.' },
@@ -74,13 +75,35 @@ describe('Fragmen', () => {
   });
 });
 
+describe('Kueri daftar (dipakai GET dan QUERY)', () => {
+  it('memperlakukan nilai kosong sebagai filter yang tidak dipakai', () => {
+    // bentuk `?from&to=` dari URL dan `{"search":""}` dari form yang dikosongkan
+    const parsed = FragmentListQuerySchema.parse({ from: '', to: '', cursor: '', search: '', limit: '' });
+    expect(parsed).toEqual({ limit: 50 });
+  });
+
+  it('menerima query-content JSON dan string-URL dengan hasil sama', () => {
+    expect(FragmentListQuerySchema.parse({ search: 'rapat', limit: 20 })).toEqual({ search: 'rapat', limit: 20 });
+    expect(FragmentListQuerySchema.parse({ search: 'rapat', limit: '20' })).toEqual({ search: 'rapat', limit: 20 });
+  });
+
+  it('memangkas spasi liar pada nilai kueri', () => {
+    expect(FragmentListQuerySchema.parse({ search: '  kopi  ' }).search).toBe('kopi');
+  });
+
+  it('menolak tanggal tidak lengkap dan limit di luar rentang', () => {
+    expect(FragmentListQuerySchema.safeParse({ from: '2026-13-1' }).success).toBe(false);
+    expect(FragmentListQuerySchema.safeParse({ limit: 500 }).success).toBe(false);
+  });
+});
+
 describe('Typing Action Protocol', () => {
   const req = {
     protocol: TAP_VERSION,
     jobId: '01971234-5678-7000-8000-0000000000aa',
     task: 'paraphrase',
-    text: '把这句话换个说法',
-    sourceLang: 'zh-Hans',
+    text: 'ubah kalimat ini jadi versi lain',
+    sourceLang: 'id',
     deadlineMs: 3000,
   };
 
@@ -97,7 +120,7 @@ describe('Typing Action Protocol', () => {
   it('chunk done membawa referensi ber-skor 0..1', () => {
     const chunk = AiStreamChunkSchema.parse({
       type: 'done',
-      text: '结果',
+      text: 'the result',
       cacheHit: false,
       references: [
         {
@@ -115,7 +138,7 @@ describe('Typing Action Protocol', () => {
   });
 
   it('ndjson round-trip aman untuk teks multi-byte', () => {
-    const line = toNdjson({ ...req, text: '你好，世界 — ok' });
+    const line = toNdjson({ ...req, text: 'kopi — tiga ribu rupiah, enak sekali' });
     expect(parseNdjsonLine(line)).toMatchObject({ task: 'paraphrase' });
     expect(parseNdjsonLine('')).toBeNull();
   });

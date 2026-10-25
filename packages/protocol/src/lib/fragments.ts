@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Sebuah potongan teks yang pengguna kumpulkan (收录). */
+/** Sebuah potongan teks yang pengguna kumpulkan. */
 export const FragmentKindSchema = z.enum(['fragment', 'note', 'clip']);
 
 export const TranslationProviderSchema = z.enum(['local-dictionary', 'remote-llm', 'on-device', 'none']);
@@ -60,11 +60,26 @@ export const FragmentBatchResponseSchema = z.object({
   retryClientIds: z.array(z.uuid()),
 });
 
+/**
+ * Kueri daftar dipakai dua jalur: string-URL (`GET /v1/contents?from=...`) dan
+ * query-content (`QUERY /v1/contents` dengan body JSON, RFC 10008). Keduanya bisa
+ * membawa nilai kosong — `?from` tanpa nilai, atau `{"search": ""}` dari form yang
+ * baru dikosongkan. Perlakukan keduanya sebagai "filter tidak dipakai", bukan error.
+ */
+const emptyMeansAbsent = (value: unknown): unknown =>
+  typeof value === 'string' ? (value.trim() === '' ? undefined : value.trim()) : value;
+
 export const FragmentListQuerySchema = z.object({
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  cursor: z.string().max(200).optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50),
+  from: z.preprocess(emptyMeansAbsent, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()),
+  to: z.preprocess(emptyMeansAbsent, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()),
+  cursor: z.preprocess(emptyMeansAbsent, z.string().max(200).optional()),
+  /**
+   * Pencocokan tidak peka-kasar pada teks sumber. Sengaja lewat query-content:
+   * frasa panjang tidak tersangkut di batas panjang URL dan tidak ikut tertulis
+   * di log proxy perantara (RFC 10008 §4).
+   */
+  search: z.preprocess(emptyMeansAbsent, z.string().max(200).optional()),
+  limit: z.preprocess(emptyMeansAbsent, z.coerce.number().int().min(1).max(200).default(50)),
 });
 
 export const FragmentListResponseSchema = z.object({
@@ -89,4 +104,5 @@ export type FragmentInput = z.infer<typeof FragmentInputSchema>;
 export type Fragment = z.infer<typeof FragmentSchema>;
 export type FragmentBatchRequest = z.infer<typeof FragmentBatchRequestSchema>;
 export type FragmentBatchResponse = z.infer<typeof FragmentBatchResponseSchema>;
+export type FragmentListQuery = z.infer<typeof FragmentListQuerySchema>;
 export type DailyCount = z.infer<typeof DailyCountSchema>;

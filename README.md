@@ -20,7 +20,8 @@ pnpm db:migrate && pnpm db:seed
 
 pnpm dev:api              # NestJS di :3000 (dijalankan dengan Bun)
 pnpm dev:web              # Vite di :4200
-pnpm smoke                # 14 pemeriksaan end-to-end: auth -> perangkat -> koleksi -> lane AI
+pnpm smoke                # 15 pemeriksaan end-to-end: auth -> origin trust -> perangkat -> koleksi -> lane AI
+pnpm check:query          # 18 pemeriksaan HTTP QUERY (RFC 10008): header, validasi, paritas GET, CORS
 ```
 
 Verifikasi penuh (typecheck + test + build semua project):
@@ -37,12 +38,14 @@ pnpm verify
 | `apps/api` | NestJS 11 — auth (better-auth), koleksi, statistik, pengaturan berversi, AI gateway |
 | `packages/protocol` | skema zod + amplop respons + Typing Action Protocol; dipakai api dan web |
 | `packages/db` | skema Drizzle, migrasi, seed, pabrik instance better-auth |
-| `packages/engine` | mesin input murni TS: kamus frasa id→en (dipakai) + mesin pinyin Mandarin (fase berikutnya) |
+| `packages/engine` | mesin input murni TS: kamus frasa id→en + `BilingualAssist` (dipakai); mesin pinyin Mandarin ada di `src/mandarin/` dan tidak di-export |
 
 ## Keputusan penting
 
 Baca [docs/decisions.md](./docs/decisions.md). Ringkasnya: v1 hanya **Indonesia → Inggris** di **web**;
 Lane AI berurutan *cache → kamus lokal → LLM*, dan LLM mati secara default (`AI_REMOTE_ENABLED=false`).
+Pencarian koleksi memakai metode **HTTP QUERY (RFC 10008)** — kueri duduk di body, `GET /v1/contents`
+tetap dilayani untuk klien lama dan keduanya memberi hasil yang sama.
 
 ## Yang tidak masuk repo
 
