@@ -43,3 +43,7 @@ Thumbs.db
 .nx/migrate-runs
 .claude/worktrees
 .claude/settings.local.json
+# Reverse-engineering scratch & tool output (not product source)
+.rea/
+rea-work/
+nx-graph.json
