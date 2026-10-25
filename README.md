@@ -1,25 +1,48 @@
 # Waddle
 
-Nx workspace untuk produk **input method dwibahasa + aksi generatif saat mengetik** (macOS + backend).
-Rancangan lengkapnya ada di [docs/](./docs/README.md); dasar risetnya:
-[keysake-architecture.md](./docs/keysake-research/keysake-architecture.md).
+Produk: **ketik bahasa Indonesia, lihat bahasa Inggrisnya, simpan yang menarik**. v1 berupa web app + API;
+keyboard sistem (desktop/mobile) menyusul setelah web berjalan dan terbukti berguna.
 
-## Workspace
+- Monorepo: Nx 24 + pnpm 10 (`apps/*`, `packages/*`), TypeScript 6 strict, Prettier, scope impor `@waddle/*`.
+- Backend: NestJS 11 dijalankan dengan **Bun**; Postgres 16 + **Drizzle**; auth dengan **better-auth**; AI lewat **Vercel AI SDK** (lane remote mati secara default).
+- Frontend: React 19 + Vite.
+- Spesifikasi lengkap: [docs/keysake-research/blueprint/README.md](./docs/keysake-research/blueprint/README.md);
+  hasil reverse engineering yang mendasarinya: [keysake-architecture.md](./docs/keysake-research/keysake-architecture.md);
+  keputusan v1: [docs/decisions.md](./docs/decisions.md).
 
-- Nx v24, preset `ts`, pnpm 10, `packages/*` (lihat `pnpm-workspace.yaml`), TypeScript 6 strict, Prettier.
-- Scope impor: `@waddle/*` (`package.json` name `@waddle/source`).
-- Target yang sudah aktif dari plugin `@nx/js/typescript`: `typecheck`, `build`, `build-deps`, `watch-deps`.
-- Belum ada project — keputusan pertama (spike H1/H2 di [08-build-plan-mvp.md](./docs/keysake-research/blueprint/08-build-plan-mvp.md)) menentukan bentuknya.
-
-## Perintah
+## Jalankan
 
 ```bash
-pnpm nx version              # versi Nx lokal
-pnpm nx show projects        # daftar project (kosong sampai generator pertama)
-pnpm nx graph --file=nx-graph.json
-pnpm nx format:write
-pnpm nx run-many -t typecheck
+cp .env.example .env      # isi BETTER_AUTH_SECRET (>=32 char) dan DATABASE_URL
+pnpm install
+pnpm db:up                # Postgres 16 di localhost:5433 lewat docker compose
+pnpm db:migrate && pnpm db:seed
+
+pnpm dev:api              # NestJS di :3000 (dijalankan dengan Bun)
+pnpm dev:web              # Vite di :4200
+pnpm smoke                # 14 pemeriksaan end-to-end: auth -> perangkat -> koleksi -> lane AI
 ```
+
+Verifikasi penuh (typecheck + test + build semua project):
+
+```bash
+pnpm verify
+```
+
+## Project
+
+| Project | Peran |
+|---|---|
+| `apps/web` | SPA React 19 + Vite — permukaan yang kita luncurkan lebih dulu (tulis, koleksi, akun) |
+| `apps/api` | NestJS 11 — auth (better-auth), koleksi, statistik, pengaturan berversi, AI gateway |
+| `packages/protocol` | skema zod + amplop respons + Typing Action Protocol; dipakai api dan web |
+| `packages/db` | skema Drizzle, migrasi, seed, pabrik instance better-auth |
+| `packages/engine` | mesin input murni TS: kamus frasa id→en (dipakai) + mesin pinyin Mandarin (fase berikutnya) |
+
+## Keputusan penting
+
+Baca [docs/decisions.md](./docs/decisions.md). Ringkasnya: v1 hanya **Indonesia → Inggris** di **web**;
+Lane AI berurutan *cache → kamus lokal → LLM*, dan LLM mati secara default (`AI_REMOTE_ENABLED=false`).
 
 ## Yang tidak masuk repo
 
