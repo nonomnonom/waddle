@@ -4,10 +4,19 @@
  * Data ini kami susun sendiri (bukan hasil scrape / bukan milik produk lain), jadi
  * tidak ada warisan lisensi seperti kasus kamus GPL di fase Mandarin.
  *
- * Bentuk: [indonesia, inggris, bobot]. Bobot hanya dipakai untuk urutan kandidat
- * ketika lebih dari satu terjemahan cocok (mis. "bisa" → "can" vs "able to").
+ * Bentuk: `[indonesia, inggris, bobot, opsi?]`. Bobot dipakai untuk urutan kandidat
+ * ketika lebih dari satu terjemahan cocok (mis. "bisa" → "can" vs "able to"), dan
+ * `opsi.sense` menandai varian kedua itu supaya tidak saling menimpa di indeks.
  */
-export type GlossaryRow = [string, string, number];
+export type GlossaryOpts = {
+  /** gaya terjemahan: dipakai CandidateEngine untuk menawarkan varian register */
+  register?: 'neutral' | 'formal' | 'casual';
+  /** 1 = terjemahan utama; 2/3 = alternatif yang tetap layak ditampilkan */
+  sense?: number;
+  pos?: 'v' | 'n' | 'adj' | 'adv' | 'func';
+};
+
+export type GlossaryRow = [string, string, number, GlossaryOpts?];
 
 export const ID_EN: GlossaryRow[] = [
   // sapaan & frasaan harian

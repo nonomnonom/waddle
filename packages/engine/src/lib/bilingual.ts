@@ -1,4 +1,4 @@
-import { ID_EN, type GlossaryRow } from './glossary-id-en.js';
+import { ID_EN, type GlossaryOpts, type GlossaryRow } from './glossary-id-en.js';
 
 /**
  * Jalur "ketik bahasa Indonesia, lihat bahasa Inggris" — murni, tanpa jaringan.
@@ -19,6 +19,8 @@ export interface PhraseEntry {
   en: string;
   weight: number;
   tokens: string[];
+  /** sense/register dari baris kamus aslinya */
+  opts?: GlossaryOpts;
 }
 
 export interface Suggestion {
@@ -49,16 +51,21 @@ export class PhraseBook {
   maxPhraseTokens = 1;
 
   constructor(rows: GlossaryRow[] = ID_EN) {
-    for (const [id, en, weight] of rows) this.add({ id, en, weight, tokens: tokenize(id) });
+    for (const [id, en, weight, opts] of rows) this.add({ id, en, weight, opts, tokens: tokenize(id) });
   }
 
   add(entry: PhraseEntry): void {
-    const key = normalize(entry.id);
+    // sense membuat kunci unik: "bisa#1" (can) dan "bisa#2" (able to) boleh hidup bersamaan
+    const key = `${normalize(entry.id)}#${entry.opts?.sense ?? 1}`;
     this.byId.set(key, entry);
     const n = entry.tokens.length;
     this.maxPhraseTokens = Math.max(this.maxPhraseTokens, n);
     const bucket = this.phraseIndex.get(n) ?? new Map<string, PhraseEntry>();
-    bucket.set(entry.tokens.join(' '), entry);
+    const slot = entry.tokens.join(' ');
+    const prev = bucket.get(slot);
+    // Indeks frasa menampung satu terjemahan per bentuk — yang berbobot paling tinggi.
+    // Sense lainnya tetap tersedia lewat wordSenses/sensesOf untuk CandidateEngine.
+    if (!prev || prev.weight < entry.weight) bucket.set(slot, entry);
     this.phraseIndex.set(n, bucket);
 
     if (n === 1) {
