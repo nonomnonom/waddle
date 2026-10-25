@@ -55,6 +55,16 @@ const takeSuffix = (word: string): { stem: string; suffix: string }[] =>
 const takePrefix = (word: string): { stem: string; prefix: string }[] =>
   PREFIXES.filter((p) => word.length - p.length >= MIN_STEM && word.startsWith(p)).map((p) => ({ stem: word.slice(p.length), prefix: p }));
 
+/**
+ * Huruf yang mungkin terserap saat prefiks menempel. Selain daftar RESTORE, ada
+ * kasus geminasi: `ter` + `rasa` ditulis `terasa` (r-nya rangkap hilang), jadi
+ * huruf terakhir prefiks juga kami coba kembalikan kalau akarnya mulai dengan vokal.
+ */
+function restores(prefix: string, stem: string): string[] {
+  const extra = /[aeiou]/.test(stem[0] ?? '') ? prefix.slice(-1) : '';
+  return [...new Set([...(RESTORE[prefix] ?? []), extra].filter((c) => c && /[a-z]/.test(c)))];
+}
+
 interface Raw { lemma: string; prefix: string; suffix: string; pattern: MorphGuess['pattern']; score: number }
 
 /**
@@ -77,18 +87,18 @@ export function analyzeWord(raw: string): MorphGuess[] {
     // sufiks lalu prefiks: pengajaran -> pengajaran -> ajar
     for (const { stem: stem2, prefix } of takePrefix(stem)) {
       add({ lemma: stem2, prefix, suffix, pattern: 'circum', score: 4 });
-      for (const lost of RESTORE[prefix] ?? []) add({ lemma: lost + stem2, prefix, suffix, pattern: 'restore', score: 2.5 });
+      for (const lost of restores(prefix, stem2)) add({ lemma: lost + stem2, prefix, suffix, pattern: 'restore', score: 2.5 });
     }
   }
 
   for (const { stem, prefix } of takePrefix(surface)) {
     // prefiks saja: membaca -> baca, diundur -> undur, terlambat -> lambat
     add({ lemma: stem, prefix, suffix: '', pattern: 'prefix', score: 3 });
-    for (const lost of RESTORE[prefix] ?? []) add({ lemma: lost + stem, prefix, suffix: '', pattern: 'restore', score: 2.5 });
+    for (const lost of restores(prefix, stem)) add({ lemma: lost + stem, prefix, suffix: '', pattern: 'restore', score: 2.5 });
     // prefiks lalu sufiks: menolong -> tolong (meny+apu -> sapu)
     for (const { stem: stem2, suffix } of takeSuffix(stem)) {
       add({ lemma: stem2, prefix, suffix, pattern: 'circum', score: 4 });
-      for (const lost of RESTORE[prefix] ?? []) add({ lemma: lost + stem2, prefix, suffix, pattern: 'restore', score: 2.5 });
+      for (const lost of restores(prefix, stem2)) add({ lemma: lost + stem2, prefix, suffix, pattern: 'restore', score: 2.5 });
     }
   }
 
@@ -96,10 +106,25 @@ export function analyzeWord(raw: string): MorphGuess[] {
   for (const r of raws.sort((a, b) => b.score - a.score)) if (!byLemma.has(r.lemma)) byLemma.set(r.lemma, r);
   const out = [...byLemma.values()].slice(0, 4);
 
-  // Bentuk asal selalu ikut — termasuk kata pendek (di, ke, ku, ya): MIN_STEM hanya
-  // menyaring hasil *setelah* pengimbuhan, bukan membungkam kata itu sendiri.
+/** bentuk asal selalu ikut — termasuk kata pendek (di, ke, ku, ya): MIN_STEM hanya
+ * menyaring hasil *setelah* pengimbuhan, bukan membungkam kata itu sendiri.
+ */
   if (!byLemma.has(surface) && out.length < 4) {
     out.push({ lemma: surface, prefix: '', suffix: '', pattern: 'base', score: 1 });
   }
   return out.map((r) => ({ surface, lemma: r.lemma, prefix: r.prefix, suffix: r.suffix, pattern: r.pattern }));
+}
+
+/**
+ * Kelas kata yang seharusnya dari sebuah hasil analisis. Ini yang membuat
+ * `menolong` terpilih sebagai *to help* (verba), bukan sense pertama `tolong`
+ * yang di kamus kita adalah *please*. Tanpa panduan ini, pemilihan sense cuma
+ * mengikuti bobot dan kalimat jadi ngawur.
+ */
+export function expectedPos(guess: MorphGuess): 'v' | 'n' | undefined {
+  const verbPrefixes = ['mem', 'men', 'meng', 'meny', 'menge', 'di', 'ter', 'be', 'bel', 'pem', 'peng', 'peny', 'pen'];
+  if (guess.prefix && verbPrefixes.includes(guess.prefix)) return 'v';
+  if (guess.suffix === 'kan') return 'v';
+  if (guess.suffix === 'an' || guess.suffix === 'nya' || guess.prefix === 'ke') return 'n';
+  return undefined;
 }

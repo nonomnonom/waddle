@@ -6,5 +6,6 @@
 export * from './lib/glossary-id-en.js';
 export * from './lib/bilingual.js';
 export * from './lib/morphology.js';
+export * from './lib/candidates.js';
 export * from './lib/corpus.probe.js';
 export * from './data/glossary.core.js';

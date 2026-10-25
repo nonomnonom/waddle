@@ -13,7 +13,7 @@ export type GlossaryOpts = {
   register?: 'neutral' | 'formal' | 'casual';
   /** 1 = terjemahan utama; 2/3 = alternatif yang tetap layak ditampilkan */
   sense?: number;
-  pos?: 'v' | 'n' | 'adj' | 'adv' | 'func';
+  pos?: 'v' | 'n' | 'adj' | 'adv' | 'func' | 'prep';
 };
 
 export type GlossaryRow = [string, string, number, GlossaryOpts?];

@@ -1,0 +1,67 @@
+import type { GlossaryRow } from '../lib/glossary-id-en.js';
+
+/**
+ * Batch ketiga — diambil dari daftar `topUnknown` hasil `pnpm coverage:id-en`, bukan
+ * dari tebakan. semua kata di sini berfrekuensi tinggi yang memang belum tertutup batch 1/2 atau
+ * morfologi (nomina turunan seperti `bantuan`/`barang` kami simpan sebagai kata
+ * sendiri karena artinya berbeda dari lemma induknya).
+ */
+export const GLOSSARY_BATCH3: GlossaryRow[] = [
+  ['baik', 'good', 86, { pos: 'adj', sense: 1 }],
+  ['baik', 'fine', 70, { pos: 'adj', sense: 2 }],
+  ['baik-baik', 'take care', 55, {}],
+  ['balik', 'to return', 80, { pos: 'v', register: 'casual' }],
+  ['barang', 'item', 70, { pos: 'n' }],
+  ['barang', 'goods', 65, { pos: 'n', sense: 2 }],
+  ['bantuan', 'assistance', 68, { pos: 'n' }],
+  ['begini', 'like this', 66, { pos: 'adv' }],
+  ['begitu juga', 'likewise', 40, {}],
+  ['belas', 'eleven', 60, { pos: 'n' }],
+  ['berarti', 'means', 60, { pos: 'v' }],
+  ['beras', 'uncooked rice', 62, { pos: 'n' }],
+  ['dekat', 'near', 76, { pos: 'adj' }],
+  ['deras', 'heavy (rain)', 55, { pos: 'adj' }],
+  ['ajak', 'to invite', 62, { pos: 'v' }],
+  ['dulu', 'for now', 74, { pos: 'adv', register: 'casual' }],
+  ['dulu', 'earlier', 66, { pos: 'adv', sense: 2 }],
+  ['habis', 'used up', 72, { pos: 'adj', sense: 1 }],
+  ['habis', 'after', 55, { pos: 'prep', sense: 2 }],
+  ['hilang', 'lost', 72, { pos: 'adj' }],
+  ['inggris', 'english', 74, { pos: 'n' }],
+  ['isi', 'content', 68, { pos: 'n' }],
+  ['kabar', 'news', 76, { pos: 'n' }],
+  ['kabari', 'to let know', 55, { pos: 'v' }],
+  ['jelang', 'approaching', 55, { pos: 'prep' }],
+  ['kota', 'city', 74, { pos: 'n' }],
+  ['laptop', 'laptop', 62, { pos: 'n' }],
+  ['lewat', 'via', 70, { pos: 'prep' }],
+  ['listrik', 'electricity', 66, { pos: 'n' }],
+  ['parah', 'severe', 60, { pos: 'adj' }],
+  ['payung', 'umbrella', 58, { pos: 'n' }],
+  ['rapor', 'report card', 45, { pos: 'n' }],
+  ['sempat', 'to have the chance', 66, { pos: 'v' }],
+  ['soal', 'about', 76, { pos: 'prep' }],
+  ['soal', 'question', 60, { pos: 'n', sense: 2 }],
+  ['sopan', 'polite', 58, { pos: 'adj' }],
+  ['udara', 'air', 62, { pos: 'n' }],
+
+  // nomina rumah & meja yang sering muncul di kalimat harian
+  ['meja', 'table', 70, { pos: 'n' }],
+  ['kursi', 'chair', 66, { pos: 'n' }],
+  ['kamar', 'room', 68, { pos: 'n' }],
+  ['dapur', 'kitchen', 58, { pos: 'n' }],
+  ['pintu', 'door', 66, { pos: 'n' }],
+  ['jendela', 'window', 55, { pos: 'n' }],
+  ['tas', 'bag', 64, { pos: 'n' }],
+  ['buku', 'book', 72, { pos: 'n' }],
+  ['panduan', 'guide', 60, { pos: 'n' }],
+  ['di atas', 'on', 72, {}],
+  ['di bawah', 'under', 66, {}],
+  ['di samping', 'beside', 55, {}],
+  ['di depan', 'in front of', 58, {}],
+  ['air minum', 'drinking water', 45, {}],
+  ['luar kota', 'out of town', 45, {}],
+  ['dalam perjalanan', 'on the way', 50, {}],
+  ['tidak terduga', 'unexpected', 40, {}],
+  ['sedikit banyak', 'somewhat', 40, {}],
+];

@@ -11,7 +11,8 @@
     "db:generate": "nx run @waddle/db:generate",
     "smoke": "bun scripts/smoke-api.ts",
     "check:query": "bun scripts/check-http-query.ts",
-    "verify": "nx run-many -t typecheck && nx run-many -t test && nx run-many -t build"
+    "verify": "nx run-many -t typecheck && nx run-many -t test && nx run-many -t build",
+    "coverage:id-en": "bun scripts/measure-coverage.ts"
   },
   "private": true,
   "devDependencies": {

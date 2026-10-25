@@ -1,5 +1,5 @@
 import { BilingualAssist, PhraseBook, normalize, tokenize } from './bilingual.js';
-import { ID_EN } from './glossary-id-en.js';
+import { mergedGlossary } from '../data/glossary.core.js';
 
 const assist = () => new BilingualAssist();
 
@@ -12,10 +12,11 @@ describe('PhraseBook (id → en)', () => {
 
   it('menandai token yang tidak dikenali dengan kurung siku', () => {
     const book = new PhraseBook();
-    const r = book.translateTokens(tokenize('saya butuh payung'));
+    // 'quxzy' bukan kata: dipilih supaya test ini tidak pecah saat kamus tumbuh
+    const r = book.translateTokens(tokenize('saya butuh quxzy'));
     expect(r.parts[0]).toBe('i');
-    expect(r.unknown).toEqual(['payung']);
-    expect(r.parts.join(' ')).toContain('[payung]');
+    expect(r.unknown).toEqual(['quxzy']);
+    expect(r.parts.join(' ')).toContain('[quxzy]');
   });
 
   it('memberi beberapa sense untuk kata ambigu', () => {
@@ -24,9 +25,11 @@ describe('PhraseBook (id → en)', () => {
     expect(book.sensesOf('tidak')[0].en).toBe('not');
   });
 
-  it('memuat data tanpa duplikat kunci', () => {
+  it('memuat kamus gabungan tanpa duplikat kunci sense', () => {
     const book = new PhraseBook();
-    expect(book.size).toBe(new Set(ID_EN.map((row: [string, string, number]) => normalize(row[0]))).size);
+    const keys = mergedGlossary().map((row) => `${normalize(row[0])}#${row[3]?.sense ?? 1}`);
+    expect(book.size).toBe(new Set(keys).size);
+    expect(book.size).toBeGreaterThan(600);
   });
 
   it('autocomplete frasa dari token pertama', () => {
@@ -61,9 +64,9 @@ describe('BilingualAssist: jalur mengetik', () => {
 
   it('needsRemote hanya menyala kalau ada token asing atau cakupan rendah', () => {
     expect(assist().needsRemote('terima kasih').needed).toBe(false);
-    const gap = assist().needsRemote('saya butuh payung');
+    const gap = assist().needsRemote('saya butuh quxzy');
     expect(gap.needed).toBe(true);
-    expect(gap.unknownTokens).toEqual(['payung']);
+    expect(gap.unknownTokens).toEqual(['quxzy']);
   });
 
   it('translate() konsisten dengan kandidat teratas', () => {

@@ -1,8 +1,10 @@
 import { ID_EN, type GlossaryRow } from '../lib/glossary-id-en.js';
 import { GLOSSARY_BATCH2 } from './glossary.batch2.js';
+import { GLOSSARY_BATCH3 } from './glossary.batch3.js';
+import { GLOSSARY_BATCH4 } from './glossary.batch4.js';
 import { GLOSSARY_GEN } from './glossary.gen.js';
 import { GLOSSARY_OVERRIDES } from './glossary.overrides.js';
-import { normalize } from '../lib/bilingual.js';
+import { normalize } from '../lib/text.js';
 
 /**
  * Kamus inti id→en, kami susun sendiri.
@@ -92,7 +94,8 @@ export const GLOSSARY_AUTHORED: GlossaryRow[] = [
   ['udah', 'already', 80, { pos: 'func', register: 'casual' }],
   ['belum', 'not yet', 92, { pos: 'func' }],
   ['akan', 'will', 96, { pos: 'func' }],
-  ['sedang', 'in the middle of', 88, { pos: 'func' }],
+  ['sedang', 'currently', 88, { pos: 'func', sense: 1 }],
+  ['sedang', 'in the middle of', 60, { pos: 'func', sense: 2 }],
   ['mau', 'want', 94, { pos: 'func' }],
   ['ingin', 'would like', 75, { pos: 'func', register: 'formal' }],
   ['pingin', 'want', 60, { pos: 'func', register: 'casual' }],
@@ -189,8 +192,8 @@ export const GLOSSARY_AUTHORED: GlossaryRow[] = [
   ['simpan', 'to save', 80, { pos: 'v' }],
   ['buka', 'to open', 85, { pos: 'v' }],
   ['tutup', 'to close', 85, { pos: 'v' }],
-  ['kunci', 'to lock', 72, { pos: 'v', sense: 1 }],
-  ['kunci', 'key', 78, { pos: 'n', sense: 2 }],
+  ['kunci', 'key', 78, { pos: 'n', sense: 1 }],
+  ['kunci', 'to lock', 70, { pos: 'v', sense: 2 }],
   ['cari', 'to look for', 85, { pos: 'v' }],
   ['temu', 'to meet', 80, { pos: 'v' }],
   ['kenal', 'to know (a person)', 72, { pos: 'v' }],
@@ -387,8 +390,8 @@ export const GLOSSARY_AUTHORED: GlossaryRow[] = [
   ['sama-sama', "you're welcome", 80, {}],
 ];
 
-/** seluruh kamus yang dipakai serving: frasa riset lama + inti authored + batch 2 */
-export const GLOSSARY_CORE: GlossaryRow[] = [...ID_EN, ...GLOSSARY_AUTHORED, ...GLOSSARY_BATCH2];
+/** seluruh kamus yang dipakai serving: frasa riset lama + inti authored + batch 2 + batch 3 */
+export const GLOSSARY_CORE: GlossaryRow[] = [...ID_EN, ...GLOSSARY_AUTHORED, ...GLOSSARY_BATCH2, ...GLOSSARY_BATCH3, ...GLOSSARY_BATCH4];
 
 /**
  * Susun akhir untuk PhraseBook: core → gen → overrides. Override menang, dan kunci

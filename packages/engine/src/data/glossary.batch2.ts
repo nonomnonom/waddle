@@ -1,7 +1,7 @@
 import type { GlossaryRow } from '../lib/glossary-id-en.js';
 
 /**
- * Batch kedua kamus inti: angka, ruang/waktu, dan kata高频 yang muncul sebagai
+ * Batch kedua kamus inti: angka, ruang/waktu, dan kata berfrekuensi tinggi yang muncul sebagai
  * `topUnknown` saat gerbang coverage diukur (lihat `scripts/measure-coverage.ts`).
  *
  * Aturan penulisan sama seperti batch pertama: lemma, bukan bentuk berimbuhan;

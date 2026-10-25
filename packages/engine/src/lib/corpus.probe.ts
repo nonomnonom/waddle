@@ -78,6 +78,64 @@ export const PROBE_SENTENCES: string[] = [
   'semoga kamu segera sembuh dan bisa kerja lagi',
 ];
 
+/**
+ * Set held-out: ranah yang TIDAK dipakai untuk memutuskan baris kamus mana yang
+ * ditambah (batch 3 lahir dari `topUnknown` PROBE_SENTENCES, bukan dari daftar ini).
+ * Angkanya dilaporkan, tidak dijadikan gerbang gagal/lulus, supaya klaim "100% di
+ * korpus kami" tidak jadi satu-satunya bukti.
+ */
+export const PROBE_HELDOUT: string[] = [
+  'kulkas di dapur bunyinya aneh sejak kemarin sore',
+  'tolong matikan lampu kamar sebelum tidur',
+  'adikku ikut lomba renang di kolam dekat stadion',
+  'kami ganti ban mobil di bengkel pinggir jalan',
+  'ibu menyuruh beli gula dan garam di warung',
+  'pesanan saya belum sampai, padahal sudah bayar dua kali',
+  'dia pindah kerja ke perusahaan yang jauh dari rumah',
+  'jangan lupa bawa bekal, di sana susah cari makanan',
+  'kuota internet rumah habis karena banyak meeting video',
+  'kucing kami melahirkan empat anak minggu lalu',
+  'saya perlu tanda tangan di lembar yang kamu kirim',
+  'pak guru bilang ujian susulan diadakan Senin depan',
+  'getaran gempa tadi terasa sampai lantai tiga',
+  'tolong isikan bensin penuh, sekalian cuci mobil',
+  'sepeda saya hilang di halaman masjid tadi malam',
+  'kita patung bayaran parkir ya, dompetku tipis',
+  'mesin cucinya macet, panggil teknisi saja',
+  'fotokopi ijazahnya perlu dua lembar untuk pendaftaran',
+  'sepeda motor tetangga parkir menutupi gerbang kami',
+  'saya telpon dari tadi tidak diangkat, mungkin sedang di luar',
+];
+
+/**
+ * Set BUTA (blind): kami tulis setelah kamus selesai dan berjanji tidak menambah
+ * baris berdasarkan daftar unknown-nya. Fungsi satu-satunya: membuktikan angka
+ * coverage bukan hasil tune. PROBE_HELDOUT sudah tidak bisa berperan itu lagi,
+ * karena batch 4 justru lahir dari unknown-nya.
+ */
+export const PROBE_BLIND: string[] = [
+  'besok kami ke bandung naik kereta pagi',
+  'kamar hotelnya kecil tapi dekat stasiun',
+  'mbok, teh angetnya satu gelas saja',
+  'denyut kepalaku sakit sejak belajar terlalu malam',
+  'olahraga pagi membuat badanku lebih segar',
+  'coba rebus sayurannya jangan terlalu lama',
+  'adikku rajin menyapu halaman setiap subuh',
+  'dia menangis karena kucing kesayangannya pergi',
+  'kita kalah sepak bola tadi, tapi senang mainnya',
+  'mas, nasi uduknya dibungkus dua ya',
+  'jangan buang airnya, masih bisa untuk menyiram tanaman',
+  'hujan semalaman membuat halaman jadi genangan',
+  'saya janji akan menelepon ibu setiap minggu',
+  'tolong jangan berisik, bayi di kamar sebelah tidur',
+  'kami simpan makanan itu di lemari paling atas',
+  'kalau harga minyak naik, kami masak tanpa gorengan',
+  'dia datang dengan sepeda yang rantainya berkarat',
+  'sepatuku basah, aku pinjam sandalmu sebentar',
+  'ibu guru memuji pekerjaan rumah anak saya',
+  'kita hitung biayanya nanti setelah semua barang tiba',
+];
+
 /** Bentuk minimal yang dibutuhkan: suggest(text, limit) -> kandidat dengan unknownTokens */
 export interface Suggester {
   suggest(text: string, limit?: number): { unknownTokens: string[] }[];

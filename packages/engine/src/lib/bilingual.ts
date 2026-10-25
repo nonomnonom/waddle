@@ -1,4 +1,9 @@
-import { ID_EN, type GlossaryOpts, type GlossaryRow } from './glossary-id-en.js';
+import { type GlossaryOpts, type GlossaryRow } from './glossary-id-en.js';
+import { mergedGlossary } from '../data/glossary.core.js';
+import { analyzeWord, expectedPos } from './morphology.js';
+import { cleanToken, normalize, tokenize } from './text.js';
+
+export { cleanToken, normalize, tokenize } from './text.js';
 
 /**
  * Jalur "ketik bahasa Indonesia, lihat bahasa Inggris" — murni, tanpa jaringan.
@@ -32,16 +37,6 @@ export interface Suggestion {
   unknownTokens: string[];
 }
 
-const PUNCT = /[.,!?;:"'“”‘’()[\]{}…—–-]+/g;
-
-export const normalize = (s: string): string =>
-  s
-    .toLowerCase()
-    .replace(/[’‘`]/g, "'")
-    .trim();
-
-const cleanToken = (t: string): string => t.replace(PUNCT, '').replace(/'/g, '');
-
 export class PhraseBook {
   private byId = new Map<string, PhraseEntry>();
   /** index frasa: jumlah token -> (string token joined spasi -> entry) */
@@ -50,7 +45,7 @@ export class PhraseBook {
   private wordSenses = new Map<string, PhraseEntry[]>();
   maxPhraseTokens = 1;
 
-  constructor(rows: GlossaryRow[] = ID_EN) {
+  constructor(rows: GlossaryRow[] = mergedGlossary()) {
     for (const [id, en, weight, opts] of rows) this.add({ id, en, weight, opts, tokens: tokenize(id) });
   }
 
@@ -100,9 +95,27 @@ export class PhraseBook {
     return out;
   }
 
-  translateTokens(tokens: string[]): { parts: string[]; unknown: string[]; matched: number; total: number } {
+  /**
+   * Cari lewat lemma hasil analisis imbuhan. `menolong` → kandidat `tolong` → ada di
+   * kamus → terjemahannya dipakai. Kalau semua kandidat gagal, mengembalikan undefined
+   * dan caller menandai token itu tidak dikenal (kami tidak pernah mengarang).
+   */
+  lookupMorph(word: string): { entry: PhraseEntry; lemma: string } | undefined {
+    for (const guess of analyzeWord(word)) {
+      const senses = this.wordSenses.get(guess.lemma);
+      if (!senses?.length) continue;
+      // bentuk berimbuhan memberi petunjuk kelas kata: `menolong` verba, `tolongan` nomina
+      const want = expectedPos(guess);
+      const entry = (want ? senses.find((s) => s.opts?.pos === want) : undefined) ?? senses[0];
+      return { entry, lemma: guess.lemma };
+    }
+    return undefined;
+  }
+
+  translateTokens(tokens: string[]): { parts: string[]; unknown: string[]; matched: number; total: number; viaMorph: string[] } {
     const parts: string[] = [];
     const unknown: string[] = [];
+    const viaMorph: string[] = [];
     let i = 0;
     let matched = 0;
     while (i < tokens.length) {
@@ -117,14 +130,23 @@ export class PhraseBook {
       if (hit) {
         parts.push(hit.en);
         i += hit.tokens.length;
+        continue;
+      }
+      const token = tokens[i];
+      const morph = this.lookupMorph(token);
+      if (morph) {
+        // dihitung sebagai match: kata itu memang ada di kamus, hanya bentuknya berimbuhan
+        parts.push(morph.entry.en);
+        viaMorph.push(token);
+        matched += 1;
+        i += 1;
       } else {
-        const t = tokens[i];
-        unknown.push(t);
-        parts.push(`[${t}]`);
+        unknown.push(token);
+        parts.push(`[${token}]`);
         i += 1;
       }
     }
-    return { parts, unknown, matched, total: tokens.length };
+    return { parts, unknown, matched, total: tokens.length, viaMorph };
   }
 }
 
@@ -195,13 +217,6 @@ export class BilingualAssist {
     if (!s) return { needed: false, unknownTokens: [], coverage: 1 };
     return { needed: s.unknownTokens.length > 0 || s.coverage < 0.75, unknownTokens: s.unknownTokens, coverage: s.coverage };
   }
-}
-
-export function tokenize(text: string): string[] {
-  return normalize(text)
-    .split(' ')
-    .map((t) => cleanToken(t))
-    .filter((t) => t.length > 0);
 }
 
 function scoreFor(_text: string, r: { unknown: string[]; matched: number }, coverage: number, total: number): number {
