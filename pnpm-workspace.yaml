@@ -1,6 +1,12 @@
 packages:
   - 'packages/*'
+  - 'packages/*/*'
   - 'apps/*'
 autoInstallPeers: true
 onlyBuiltDependencies:
   - 'nx'
+  - '@swc/core'
+  - '@swc/helpers'
+  - '@parcel/watcher'
+  - 'esbuild'
+  - 'unrs-resolver'
