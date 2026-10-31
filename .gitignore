@@ -54,3 +54,6 @@ vite.config.*.timestamp*
 # lokal
 .env
 .env.local
+
+# referensi repo pihak ketiga (bukan bagian produk)
+/refrences/
